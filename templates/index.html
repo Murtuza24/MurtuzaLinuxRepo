@@ -1,0 +1,54 @@
+<html>
+<title>Assignment 3</title>
+<h1>Mohammed Murtuza Bhaiji -1001666586</h1>
+
+<br>
+	<form action="/uploadData" method="get">
+        Upload Data from CSV
+        <input type="submit" value="Upload">
+ </form>
+    <br>
+
+	<form action="/search" method="get">
+        Enter State Code<input type="text" name="stateCode" method="get" action="/search">
+        Enter Year<input type="text" name="year" method="get" action="/search">
+        <input type="submit" value="Search">
+ </form>
+    <br>
+
+ <form action="/yearAndPop" method="get">
+        Enter Year<input type="text" name="year" method="get" action="/yearAndPop">
+        Enter Pop1<input type="text" name="pop1" method="get" action="/yearAndPop">
+        Enter POp2<input type="text" name="pop2" method="get" action="/yearAndPop">
+        <input type="submit" value="Search">
+ </form>
+    <br>
+
+<p>
+	<!--<form action="/search" method="get">-->
+   		 <!--<input type="submit" value="Search">-->
+	<!--</form>-->
+</p>
+<p>
+	<form action="/quakeRangeRedis" method="get">
+		<!--(Redis)Range From: <input type="text" name="mag" maxlength="200" width="60"> -->
+		(Redis)Range To:<input type="text" name="mag1" maxlength="200" width="60">
+		<input type="submit" value="Search">
+	</form>
+</p>
+<p>
+	<form action="/quakeMultipleQuery" method="get">
+		(Multiple DB) Enter State Code<input type="text" name="stateCode" method="get" action="/quakeMultipleQuery">
+        Enter Year<input type="text" name="year" method="get" action="/quakeMultipleQuery">
+        Enter Count<input type="text" name="count" method="get" action="/quakeMultipleQuery">
+		<input type="submit" value="Search">
+	</form>
+
+    <form action="/multipleRedis" method="get">
+		(Multiple Redis) Enter State Code<input type="text" name="stateCode" method="get" action="/multipleRedis">
+        Enter Year<input type="text" name="year" method="get" action="/multipleRedis">
+        Enter Count<input type="text" name="count" method="get" action="/multipleRedis">
+		<input type="submit" value="Search">
+	</form>
+</p>	
+</html>

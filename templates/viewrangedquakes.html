@@ -1,0 +1,18 @@
+<html>
+<body>
+<title>Assignment 3</title>
+<h1>Mohammed Murtuza Bhaiji -1001666586</h1>
+Duration: ({{timedur}}) seconds
+
+<p>This is the cached data</p>
+
+
+{% block content %}
+{% for earthquake in ci %}
+
+<p> <b>Place:{{earthquake["place"]}}</b> <b>Latitude:{{earthquake["latitude"]}} <b>Longitude:{{earthquake["longitude"]}} <b>MAGNITUDE:{{earthquake["mag"]}}</b> .
+	<b>Time:{{earthquake["time"]}}</b>. </p>
+{% endfor %}
+{% endblock %}
+</body>
+</html>
