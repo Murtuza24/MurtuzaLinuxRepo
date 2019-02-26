@@ -14,7 +14,6 @@ import random
 import pickle
 import hashlib
 import redis
-import pandas as pd
 import csv
 
 server = 'sample2401.database.windows.net'
