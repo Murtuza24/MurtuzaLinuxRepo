@@ -11,7 +11,7 @@ import json
 import pypyodbc
 import time
 import random
-import _pickle as pickle
+import pickle
 import hashlib
 import redis
 import pandas as pd
