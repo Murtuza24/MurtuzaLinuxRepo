@@ -4,17 +4,24 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, make_response
 import urllib
 import datetime
 import json
-import pypyodbc
+import pyodbc
 import time
 import random
 import pickle
 import hashlib
 import redis
 import csv
+import pandas as pd
+import pylab as pl
+from sklearn.cluster import KMeans
+import numpy as np
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
 
 server = 'sample2401.database.windows.net'
 database = 'Sample2401'
@@ -28,11 +35,11 @@ rd = redis.StrictRedis(host='Earthquake321.redis.cache.windows.net', port=6380, 
 
 @app.route('/')
 def home():
-    return render_template('index.html')\
+    return render_template('index.html')
 
 # @app.route('/uploadData')
 # def uploadData():
-#     cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+#     cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
 #                           + ';PORT=1443;DATABASE=' + database
 #                           + ';UID=' + username + ';PWD=' + password)
 #     cursor = cnxn.cursor()
@@ -110,7 +117,7 @@ def home():
 @app.route('/uploadData', methods=['GET'])
 def uploadData():
     with open('quakes.csv', mode='r') as csv_file:
-        cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+        cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
                               + ';PORT=1443;DATABASE=' + database
                               + ';UID=' + username + ';PWD=' + password)
         cursor = cnxn.cursor()
@@ -136,36 +143,16 @@ def uploadData():
 
     return render_template("index.html", time=duration)
 
-
-@app.route('/search', methods=['GET'])
-def search():
-    stateCode = request.args.get('stateCode')
-    year = request.args.get('year')
-    cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
-                            + ';PORT=1443;DATABASE=' + database
-                            + ';UID=' + username + ';PWD=' + password)
-
-    cursor = cnxn.cursor()
-    starttime = time.time()
-    sql = "select STATECODE.STATENAME,["+year+"] \
-                    FROM STATECODE \
-                    INNER JOIN POPULATION \
-                    ON STATECODE.STATENAME = POPULATION.STATE \
-                    where stateid = '"+stateCode+"'"
-    cursor.execute(sql)
-    rows = cursor.fetchall()
-    endtime = time.time()
-    duration = endtime - starttime
-    cursor.close()
-    cnxn.close()
-    return render_template('population.html', ci=rows, time=duration)
+@app.route('/getDemoGraph', methods=['GET'])
+def getDemoGraph():
+    return render_template('')
 
 @app.route('/yearAndPop', methods=['GET'])
 def yearAndPop():
     pop1 = request.args.get('pop1')
     pop2 = request.args.get('pop2')
     year = request.args.get('year')
-    cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
                             + ';PORT=1443;DATABASE=' + database
                             + ';UID=' + username + ';PWD=' + password)
 
@@ -192,7 +179,7 @@ def quakeRangeRedis():
         rd.flushdb()
     else:
         print('Cache Not Found!')
-        cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+        cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
                                 + ';PORT=1443;DATABASE=' + database
                                 + ';UID=' + username + ';PWD=' + password)
         cursor = cnxn.cursor()
@@ -239,7 +226,7 @@ def multipleRedis():
     else:
         print('Cache Not Found!')
 
-        cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+        cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
                                 + ';PORT=1443;DATABASE=' + database
                                 + ';UID=' + username + ';PWD=' + password)
 
@@ -275,6 +262,28 @@ def multipleRedis():
     return render_template('population.html', ci=results, time=total_time, msg= message)
 
 
+@app.route('/countCounty')
+def getCountCounty():
+    code = request.args.get('code', '')
+
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+                            + ';PORT=1443;DATABASE=' + database
+                            + ';UID=' + username + ';PWD=' + password)
+    cursor = cnxn.cursor()
+
+    # sql = "SELECT county.state, COUNT(county.county) FROM county, statecode\
+    #        where statecode.code = \'"+code+"\' and county.state = statecode.state GROUP BY county.state"
+
+    sql = "SELECT counties.statename, COUNT(counties.countyname) as count1 FROM counties, statecode \
+           where statecode.stateid = \'"+code+"\' and counties.statename = statecode.statename GROUP BY counties.statename"
+
+    cursor.execute(sql)
+
+    results = cursor.fetchall()
+    cursor.close()
+    cnxn.close()
+
+    return render_template('populationn.html', state=code, ci=results[0][1])
 
 @app.route('/quakerange', methods=['GET'])
 def quakerange():
@@ -283,13 +292,11 @@ def quakerange():
     magn = float(request.args.get('mag'))
     magn1 = float(request.args.get('mag1'))
 
-    cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
                             + ';PORT=1443;DATABASE=' + database
                             + ';UID=' + username + ';PWD=' + password)
 
     cursor = cnxn.cursor()
-
-
 
     starttime = time.time()
     for i in range(0,1500):
@@ -324,7 +331,7 @@ def quakeMultipleQuery():
     year = request.args.get('year')
     count = request.args.get('count')
 
-    cnxn = pypyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
                             + ';PORT=1443;DATABASE=' + database
                             + ';UID=' + username + ';PWD=' + password)
 
@@ -347,6 +354,184 @@ def quakeMultipleQuery():
     endtime = time.time()
     duration = endtime - starttime
     return render_template('population.html', ci=rows, time=duration)
+
+
+#  functions based on quiz4
+@app.route('/searchByState', methods=['GET'])
+def search():
+    stateCode = request.args.get('stateCode')
+    # year = request.args.get('year')
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+                            + ';PORT=1443;DATABASE=' + database
+                            + ';UID=' + username + ';PWD=' + password)
+
+    cursor = cnxn.cursor()
+    starttime = time.time()
+    # sql = "select STATECODE.STATENAME,["+year+"] \
+    #                 FROM STATECODE \
+    #                 INNER JOIN POPULATION \
+    #                 ON STATECODE.STATENAME = POPULATION.STATE \
+    #                 where stateid = '"+stateCode+"'"
+
+    # sql = "select [2010],[2011],[2012],[2013],[2014],[2015],[2016],[2017],[2018] FROM POPULATION \
+    #                 INNER JOIN STATECODE \
+    #                 ON STATECODE.STATENAME = POPULATION.STATE \
+    #                 where stateid = '"+stateCode+"'"
+
+    sql = "select * from population where state = 'Alabama'"
+
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    endtime = time.time()
+    duration = endtime - starttime
+
+    # print(rows)
+    # data to plot
+    n_groups = 9
+    # means_frank = (90, 55, 40, 65, 50, 35, 55, 25, 60)
+    # means_frank = tuple(rows)
+    data = []
+    for records in rows:
+        # data.append([x for x in records])
+        data.append(records['2010'])
+        data.append(records['2011'])
+        data.append(records['2012'])
+        data.append(records['2013'])
+        data.append(records['2014'])
+        data.append(records['2015'])
+        data.append(records['2016'])
+        data.append(records['2017'])
+        data.append(records['2018'])
+
+    print(data)
+
+    img = BytesIO()
+    # create plot
+    fig, ax = plt.subplots()
+    index = np.arange(n_groups)
+    bar_width = 0.45
+    opacity = 0.5
+    plt.rcParams['figure.figsize'] = (16, 9)
+    plt.style.use('ggplot')
+    rects1 = plt.bar(index, data, bar_width,
+                     alpha=opacity,
+                     color='b',
+                     label='Pop')
+
+
+    plt.xlabel('Year')
+    plt.ylabel('Population')
+    title = 'Population of {}'.format(stateCode)
+    plt.title(title)
+    plt.xticks(index + bar_width, ('2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'))
+    plt.legend()
+
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue())
+
+    response = make_response(img.getvalue())
+    response.headers['Content-Type'] = 'image/png'
+
+    cursor.close()
+    cnxn.close()
+
+    # return render_template('population.html', ci=rows, time=duration)
+    return response
+
+@app.route('/searchByYear')
+def searchByYear():
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server
+                            + ';PORT=1443;DATABASE=' + database
+                            + ';UID=' + username + ';PWD=' + password)
+    cursor = cnxn.cursor()
+    cursor.execute("select [state], [2010] from population")
+    rows = cursor.fetchall()
+
+    '''
+    # Convert pyodbc row to list
+    data = []
+    for row in rows:
+        data.append([x for x in row])
+    '''
+    cursor.close()
+    cnxn.close()
+
+    x_labels = ()
+    y_axis = []
+    for i, row in enumerate(rows):
+        #print(rows[i][1])
+        x_labels = x_labels + (row['state'],)
+        y_axis.append(rows[i][1])
+    #print(y_axis)
+
+
+
+    #objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
+    y_pos = np.arange(len(x_labels))
+    #performance = [10, 8, 6, 4, 2, 1]
+    performance = y_axis
+
+    plt.bar(y_pos, performance, align='center', alpha=0.5)
+    plt.xticks(y_pos, x_labels)
+    plt.ylabel('Population')
+    plt.title('Census')
+    # plt.show()
+
+    img3 = BytesIO()
+    plt.savefig(img3, format='png')
+
+    img3.seek(0)
+    plot_url = base64.b64encode(img3.getvalue())
+    response = make_response(img3.getvalue())
+    response.headers['Content-Type'] = 'image/png'
+    return response
+    # return render_template('population.html', ci=rows)
+
+@app.route('/kmeansClustering')
+def kmeansClustering():
+
+    numberOfClusters = int(request.args.get('numberOfClusters'))
+
+    data_frame = pd.read_csv("quakes.csv")
+    img = BytesIO()
+    data_frame.head()
+    data_frame[['mag', 'depth']].hist()
+    plt.show()
+    x = data_frame[['mag', 'depth']]
+    x = np.array(x)
+    print(x)
+
+    kmeans = KMeans(n_clusters=numberOfClusters)
+
+    kmeansoutput_x = kmeans.fit(x)
+    print(type(kmeansoutput_x))
+
+    pl.figure('5 Cluster K-Means')
+
+    pl.scatter(x[:, 0], x[:, 1], c=kmeansoutput_x.labels_, cmap='rainbow')
+
+    pl.title('5 Cluster K-Means')
+    pl.xlabel('Magnitude')
+
+    pl.ylabel('Depth')
+
+    # pl.show()
+
+    plt.savefig(img, format='png')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue())
+
+    response = make_response(img.getvalue())
+    response.headers['Content-Type'] = 'image/png'
+
+    return response
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

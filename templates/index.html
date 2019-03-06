@@ -1,6 +1,8 @@
 <html>
-<title>Assignment 3</title>
+<title>Assignment 4</title>
 <h1>Mohammed Murtuza Bhaiji -1001666586</h1>
+
+<script src="https://d3js.org/d3.v5.min.js"></script>
 
 <br>
 	<form action="/uploadData" method="get">
@@ -9,9 +11,21 @@
  </form>
     <br>
 
-	<form action="/search" method="get">
-        Enter State Code<input type="text" name="stateCode" method="get" action="/search">
-        Enter Year<input type="text" name="year" method="get" action="/search">
+	<form action="/searchByState" method="get">
+        Enter State Code<input type="text" name="stateCode" method="get" action="/searchByState">
+        <!--Enter Year<input type="text" name="year" method="get" action="/search">-->
+        <input type="submit" value="Search">
+    </form>
+
+    <form action="/searchByYear" method="get">
+        Enter Year<input type="text" name="year" method="get" action="/searchByYear">
+        <!--Enter Year<input type="text" name="year" method="get" action="/search">-->
+        <input type="submit" value="Search">
+    </form>
+
+ <form action="/kmeansClustering" method="get">
+        Enter Numbver Of Clusters<input type="text" name="numberOfClusters" method="get" action="/kmeansClustering">
+        <!--Enter Year<input type="text" name="year" method="get" action="/search">-->
         <input type="submit" value="Search">
  </form>
     <br>
@@ -19,7 +33,7 @@
  <form action="/yearAndPop" method="get">
         Enter Year<input type="text" name="year" method="get" action="/yearAndPop">
         Enter Pop1<input type="text" name="pop1" method="get" action="/yearAndPop">
-        Enter POp2<input type="text" name="pop2" method="get" action="/yearAndPop">
+        Enter Pop2<input type="text" name="pop2" method="get" action="/yearAndPop">
         <input type="submit" value="Search">
  </form>
     <br>
