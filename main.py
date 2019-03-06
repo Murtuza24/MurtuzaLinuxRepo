@@ -23,10 +23,10 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 
-server = 'sample2401.database.windows.net'
-database = 'Sample2401'
-username = 'murtuza'
-password = 'Maverick123'
+server = 'abc'
+database = 'xyz'
+username = 'abc123'
+password = 'abcd1234'
 driver = '{ODBC Driver 13 for SQL Server}'
 app = Flask(__name__)
 cacheName = 'testQueryRes'
